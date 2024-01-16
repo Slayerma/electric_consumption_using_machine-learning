@@ -75,13 +75,20 @@ Standardizing the data is a necessary step to enable the application of models t
 This process allows for more accurate and effective modeling of the data using these particular machine learning algorithms.
 
 <b>Model Building</b>
-In this step, we have built two candidate models using a convenient feature in Scikit-Learn called MultiOutput Regression. This feature allows us to efficiently and automatically fit models that can predict multiple target variables simultaneously. By leveraging this framework, we can train our models to predict several target variables in a streamlined manner. This not only simplifies the modeling process but also enables us to evaluate the models' performance across multiple targets effectively.
+In this step, we have built two candidate models using a convenient feature in Scikit-Learn called MultiOutput Regression.
+This feature allows us to efficiently and automatically fit models that can predict multiple target variables simultaneously. By leveraging this framework, we can train our models to predict several target variables in a streamlined manner. This not only simplifies the modeling process but also enables us to evaluate the models' performance across multiple targets effectively.
 
-First, we will fit a baseline model using linear regression and compare it to a more advanced model, such as Random Forest. The linear regression model does not require extensive hyperparameter tuning and provides a solid foundation for our analysis. However, there are several considerations to keep in mind:
+First, we will fit a baseline model using linear regression and compare it to a more advanced model, such as Random Forest. 
+The linear regression model does not require extensive hyperparameter tuning and provides a solid foundation for our analysis. However, there are several considerations to keep in mind:
 
-<b> Non-Normal Distribution and Varied Variance:</b> The target variable does not follow a perfect normal distribution and exhibits varying levels of variance. This can affect the assumptions of linear regression, which assumes normality and constant variance. We need to be cautious of potential deviations from these assumptions.
-<b> Multicollinearity Among Predictors:</b> There is a high degree of multicollinearity among the predictor variables, meaning that some predictors are highly correlated with each other. This can introduce challenges in interpreting the individual effects of these predictors on the target variable and may impact the model's performance.
-<b> Non-Independence of Observations:</b> The observations in our dataset may not be independent, which violates one of the key assumptions of linear regression. Non-independence can arise from various factors, such as temporal dependencies or clustering within the data. We need to consider this when interpreting the model results and evaluating its accuracy.
+<b> Non-Normal Distribution and Varied Variance:</b> The target variable does not follow a perfect normal distribution and exhibits varying levels of variance. 
+    This can affect the assumptions of linear regression, which assumes normality and constant variance. 
+    We need to be cautious of potential deviations from these assumptions.
+<b> Multicollinearity Among Predictors:</b> There is a high degree of multicollinearity among the predictor variables, meaning that some predictors are highly correlated with each other. 
+   This can introduce challenges in interpreting the individual effects of these predictors on the target variable and may impact the model's performance.
+<b> Non-Independence of Observations:</b> The observations in our dataset may not be independent, which violates one of the key assumptions of linear regression.
+   Non-independence can arise from various factors, such as temporal dependencies or clustering within the data. 
+   We need to consider this when interpreting the model results and evaluating its accuracy.
 On the other hand, an advanced model such as Random Forest requires careful hyperparameter tuning to achieve optimal performance. Typically, this is done using techniques like GridSearch and Cross Validation (CV). However, using traditional CV methods with time series data poses challenges. This is because the data should not be shuffled as it follows a specific time structure.
 
 Fortunately, Scikit-Learn provides a helpful solution called TimeSeries Split. This technique allows us to perform GridSearch in a time-aware manner by preserving the temporal order of the data. It splits the data into sequential time-based folds, ensuring that each fold respects the chronological order of the observations.
