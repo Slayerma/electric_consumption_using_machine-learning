@@ -7,8 +7,15 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy.stats import skew, kurtosis, shapiro
 
+# Define the path to the data file
 path = "C:\\Users\\usyed\\OneDrive\\Desktop\\dummydata\\spain_energy_market.csv"
+
+# Read the data from the csv file
 data = pd.read_csv(path, sep=",", parse_dates=["datetime"])
+
+# Filter the data to only include the "Demanda programada PBF total" name
+# Create a new column "date" that contains only the date portion of the datetime index
+# Set the index to be the "date" column
 data = data[data["name"] == "Demanda programada PBF total"]  # .set_index("datetime")
 data["date"] = data["datetime"].dt.date
 data.set_index("date", inplace=True)
@@ -47,13 +54,9 @@ print("Skewness: {} \nKurtosis: {}".format(skew, ex_kurt + 3))
 
 
 def shapiro_test(data, alpha=0.05):
-    stat, pval = shapiro(data)
+    pval = shapiro(data).pvalue
     print("H0: Data was drawn from a Normal Ditribution")
-    if (pval < alpha):
-        print("pval {} is lower than significance level: {}, therefore null hypothesis is rejected".format(pval, alpha))
-    else:
-        print("pval {} is higher than significance level: {}, therefore null hypothesis cannot be rejected".format(pval,
-                                                                                                                   alpha))
+    print("pval {} is {} than significance level: {}".format(pval, "" if pval < alpha else "not", alpha))
 
 
 shapiro_test(data.energy, alpha=0.05)
@@ -231,40 +234,29 @@ rfr_paramGrid = ParameterGrid(rfr_grid)
 
 
 def TimeSplit_ModBuild(model, paramGrid, splits, X, y):
-    from sklearn.model_selection import TimeSeriesSplit
     from sklearn.metrics import mean_squared_error
 
-    # Loop over each time split and for each
-    for train_index, val_index in splits.split(X_train):
-        _X_train_ = X.iloc[train_index]
-        _y_train_ = y.iloc[train_index]
-        _X_val_ = X.iloc[val_index]
-        _y_val_ = y.iloc[val_index]
+    train_scores = np.empty(len(paramGrid))
+    val_scores = np.empty(len(paramGrid))
 
-        train_scores = []
-        val_scores = []
-        # models = []
+    for g in paramGrid:
+        model_clone = model.set_params(**g)
+        p_train = model_clone.predict(X.iloc[splits.split(X, y)[0][0]])
+        p_val = model_clone.predict(X.iloc[splits.split(X, y)[0][1]])
+        train_scores[splits.split(X, y)[0].index(splits.split(X, y)[0][0])] = np.mean(mean_squared_error(y.iloc[splits.split(X, y)[0][0]], p_train))
+        val_scores[splits.split(X, y)[0].index(splits.split(X, y)[0][1])] = np.mean(mean_squared_error(y.iloc[splits.split(X, y)[0][1]], p_val))
 
-        # Loop through the parameter grid, set the hyperparameters, and save the scores
-        for g in paramGrid:
-            model.set_params(**g)
-            model.fit(_X_train_, _y_train_)
-            p_train = model.predict(_X_train_)
-            p_val = model.predict(_X_val_)
-            score_train = np.mean(mean_squared_error(_y_train_, p_train))
-            score_val = np.mean(mean_squared_error(_y_val_, p_val))
-            train_scores.append(score_train)
-            val_scores.append(score_val)
-            # models.append(model)
-            best_idx = np.argmin(val_scores)
+    best_idx = np.argmin(val_scores)
 
-        print("Best-Fold HyperParams:: ", paramGrid[best_idx])
-        print("Best-Fold Train RMSE: ", train_scores[best_idx])
-        print("Best-Fold Val RMSE: ", val_scores[best_idx])
-        print("\n")
+    print("Best-Fold HyperParams:: ", paramGrid[best_idx])
+    print("Best-Fold Train RMSE: ", train_scores[best_idx])
+    print("Best-Fold Val RMSE: ", val_scores[best_idx])
+    print("\n")
 
-        # Return the most recent model
-        return train_scores, val_scores, best_idx
+    # Return the most recent model
+    return train_scores, val_scores, best_idx
+
+
 CV_rfr_tup = TimeSplit_ModBuild(rfr, rfr_paramGrid, splits, X_train, y_train["target_t1"])
 best_rfr_idx = CV_rfr_tup[2]
 best_rfr_grid = rfr_paramGrid[best_rfr_idx]
